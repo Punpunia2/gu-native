@@ -25,6 +25,7 @@ SHADER_ID=$(cat runtime/nvn/maxwell/translate.c runtime/nvn/maxwell/shader.h | t
 VERSION="$(cat "$ROOT/VERSION" 2>/dev/null || echo dev)"
 cd "$HERE"
 
+mkdir -p "$OUT"
 "$CMAKE" -S "$(m "$HERE")" -B "$(m "$OUT")" -G Ninja -DCMAKE_MAKE_PROGRAM="$(m "$NINJA")" \
   -DCMAKE_TOOLCHAIN_FILE="$(m "$NDK/build/cmake/android.toolchain.cmake")" -DANDROID_ABI=$ABI \
   -DANDROID_PLATFORM=android-$API -DANDROID_STL=c++_shared -DCMAKE_BUILD_TYPE=$TYPE \
@@ -48,7 +49,7 @@ cp "$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$( [ $ABI = arm64
 # game code is compiled with), checked to make game code with this same GAMELIB_ID
 if [ "$ABI" = arm64-v8a ]; then
   for T in pyrun zigcc; do "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-unneeded -o "$J/lib$T.so" "$OUT/lib$T.so" || exit 1; done
-  python "$ROOT/tools/pack_builder_tools.py" "$GAMELIB_ID" || exit 1
+    python3 "$ROOT/tools/pack_builder_tools.py" "$GAMELIB_ID" || exit 1
 fi
 echo "native $ABI: ok (GAMELIB_ID $GAMELIB_ID)"
 ls -la "$J"
