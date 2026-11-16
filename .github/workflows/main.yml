@@ -24,13 +24,28 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1"
 
-      - name: Build Native Libraries (.so)
+      - name: Setup Linux shims for Windows scripts
+        run: |
+          printf '#!/bin/bash\nfor a in "$@"; do [[ "$a" != -* ]] && echo "$a"; done\n' | sudo tee /usr/local/bin/cygpath > /dev/null
+          sudo chmod +x /usr/local/bin/cygpath
+          ln -sf /usr/local/lib/android/sdk/cmake/3.22.1/bin/cmake /usr/local/lib/android/sdk/cmake/3.22.1/bin/cmake.exe
+          ln -sf /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja.exe
+
+      - name: Build Dependencies (SDL3, shaderc, FFmpeg)
         env:
-          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.0.12077973
-          ANDROID_NDK: /usr/local/lib/android/sdk/ndk/27.0.12077973
+          LOCALAPPDATA: /usr/local/lib/android
+          ANDROID_HOME: /usr/local/lib/android/sdk
+        run: |
+          mkdir -p /usr/local/lib/android/Android
+          ln -sfn /usr/local/lib/android/sdk /usr/local/lib/android/Android/Sdk
+          chmod +x deps/build_deps.sh deps/build_ffmpeg.sh
+          ./deps/build_deps.sh arm64-v8a
+          ./deps/build_ffmpeg.sh arm64-v8a
+
+      - name: Build Native Libraries (.so)
         run: |
           chmod +x native/build_native.sh
-          ./native/build_native.sh
+          ./native/build_native.sh arm64-v8a
 
       - name: Build Debug APK
         working-directory: android
