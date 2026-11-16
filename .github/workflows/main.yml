@@ -28,12 +28,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p /tmp/official_apk deps/out/arm64-v8a/sdl3/lib deps/out/arm64-v8a/ffmpeg/lib android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p /tmp/official_apk deps/out/arm64-v8a/sdl3/lib deps/out/arm64-v8a/ffmpeg/lib deps/out/arm64-v8a/shaderc/lib android/app/src/main/jniLibs/arm64-v8a
           gh release download --repo khorne-hub/gu-native --pattern "*.apk" --dir /tmp/official_apk/
           unzip -q /tmp/official_apk/*.apk "lib/arm64-v8a/*" -d /tmp/official_apk/
           cp /tmp/official_apk/lib/arm64-v8a/libSDL3.so deps/out/arm64-v8a/sdl3/lib/
           cp /tmp/official_apk/lib/arm64-v8a/libmhguffmpeg.so deps/out/arm64-v8a/ffmpeg/lib/
           cp /tmp/official_apk/lib/arm64-v8a/*.so android/app/src/main/jniLibs/arm64-v8a/
+          /usr/local/lib/android/sdk/ndk/27.0.12077973/ndk-build NDK_PROJECT_PATH=/tmp/shaderc APP_BUILD_SCRIPT=/usr/local/lib/android/sdk/ndk/27.0.12077973/sources/third_party/shaderc/Android.mk NDK_APPLICATION_MK=/usr/local/lib/android/sdk/ndk/27.0.12077973/sources/third_party/shaderc/Application.mk APP_ABI=arm64-v8a APP_STL=c++_shared libshaderc_combined -j4
+          cp /tmp/shaderc/obj/local/arm64-v8a/libshaderc_combined.a deps/out/arm64-v8a/shaderc/lib/
 
       - name: Build Native Libraries (libmain.so with texture edit)
         run: |
