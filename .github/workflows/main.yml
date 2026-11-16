@@ -36,8 +36,8 @@ jobs:
           LOCALAPPDATA: /usr/local/lib/android
           ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
-          mkdir -p /usr/local/lib/android/Android
-          ln -sfn /usr/local/lib/android/sdk /usr/local/lib/android/Android/Sdk
+          sudo mkdir -p /usr/local/lib/android/Android
+          sudo ln -sfn /usr/local/lib/android/sdk /usr/local/lib/android/Android/Sdk
           chmod +x deps/build_deps.sh deps/build_ffmpeg.sh
           ./deps/build_deps.sh arm64-v8a
           ./deps/build_ffmpeg.sh arm64-v8a
