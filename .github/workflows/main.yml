@@ -20,12 +20,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
+      - name: Install Android NDK 27
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1"
+
+      - name: Build Native Libraries (.so)
+        env:
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.0.12077973
+          ANDROID_NDK: /usr/local/lib/android/sdk/ndk/27.0.12077973
+        run: |
+          chmod +x native/build_native.sh
+          ./native/build_native.sh
 
       - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
