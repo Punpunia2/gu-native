@@ -181,7 +181,7 @@ else()
   target_include_directories(main PRIVATE ${S}/third_party/volk)
   target_compile_options(main PRIVATE "$<$<COMPILE_LANGUAGE:C,CXX>:SHELL:-include ${S}/third_party/volk/volk.h>")
   target_link_libraries(main PRIVATE SDL3 mhguffmpeg adrenotools
-    ${DEPS}/shaderc/lib/libshaderc_combined.a android log dl m z)
+  ${ANDROID_NDK}/sources/third_party/shaderc/libs/c++_shared/${ANDROID_ABI}/libshaderc_combined.a android log dl m z)
   target_link_options(main PRIVATE -Wl,--exclude-libs,ALL -Wl,--export-dynamic -Wl,-z,nostart-stop-gc)
 endif()
 
