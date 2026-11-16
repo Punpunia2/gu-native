@@ -1653,7 +1653,9 @@ VkSampler vk_sampler(NvnSamplerDesc *d) {
         }
     }
     si.addressModeU = modes[0]; si.addressModeV = modes[1]; si.addressModeW = modes[2];
-    si.minLod = d->lod_min;
+    bool is_world_tex = (mf > 1) && (d->max_aniso > 1 || d->wrap[0] == 1);
+float potato_lod = is_world_tex ? 2.5f : 0.0f;
+si.minLod = fmaxf(potato_lod, d->lod_min);
     si.maxLod = d->lod_max > 1000 ? VK_LOD_CLAMP_NONE : d->lod_max;
     if (mf <= 1) si.maxLod = si.minLod + 0.25f;  // not mipmapped: stay on the base level
     if (si.maxLod < si.minLod) si.maxLod = si.minLod;
