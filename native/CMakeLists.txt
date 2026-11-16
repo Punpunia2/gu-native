@@ -149,8 +149,8 @@ set_property(SOURCE ${FSR}/src/ffx_fsr3_glsl.c APPEND PROPERTY COMPILE_DEFINITIO
 
 set(FFMPEG_LIBS ${DEPS}/ffmpeg/lib/libavformat.a ${DEPS}/ffmpeg/lib/libavcodec.a ${DEPS}/ffmpeg/lib/libavutil.a)
 # FFmpeg (LGPL) as a library of its own beside the runtime, not inside it: anyone can replace it with their own build
-add_library(mhguffmpeg SHARED ${CMAKE_CURRENT_LIST_DIR}/ffmpeg_shared.c)
-set_target_properties(mhguffmpeg PROPERTIES LINK_DEPENDS "${FFMPEG_LIBS}")  # (they are link options: a new build of them must relink it)
+add_library(mhguffmpeg SHARED IMPORTED)
+set_target_properties(mhguffmpeg PROPERTIES IMPORTED_LOCATION ${DEPS}/ffmpeg/lib/libmhguffmpeg.so)
 # The game code library binds the runtime's functions (rt_dispatch, the NEON helpers...) by name: all exported.
 # The static libraries stay inside.
 if(WIN32)
@@ -167,9 +167,9 @@ if(WIN32)
   target_link_options(main PRIVATE -Wl,--export-all-symbols -Wl,--stack,16777216 -static)
 else()
   # (-Bsymbolic: as FFmpeg's own shared build, for its assembly)
-  target_link_options(mhguffmpeg PRIVATE -Wl,--whole-archive ${FFMPEG_LIBS} -Wl,--no-whole-archive -Wl,-Bsymbolic
-    -Wl,-z,max-page-size=16384)
-  target_link_libraries(mhguffmpeg PRIVATE m)
+  # target_link_options(mhguffmpeg PRIVATE -Wl,--whole-archive ${FFMPEG_LIBS} -Wl,--no-whole-archive -Wl,-Bsymbolic
+#   -Wl,-z,max-page-size=16384)
+# target_link_libraries(mhguffmpeg PRIVATE m)
   add_library(SDL3 SHARED IMPORTED)
   set_target_properties(SDL3 PROPERTIES IMPORTED_LOCATION ${DEPS}/sdl3/lib/libSDL3.so)
   # (the vk* of everything in it are volk's pointers, filled by runtime/platform/android_gpu.c: the system's driver, or the
