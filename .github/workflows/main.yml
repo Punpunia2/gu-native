@@ -25,11 +25,12 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1"
 
       - name: Fetch prebuilt libs (SDL3 & FFmpeg) from official release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/official_apk deps/out/arm64-v8a/sdl3/lib deps/out/arm64-v8a/ffmpeg/lib android/app/src/main/jniLibs/arm64-v8a
-          APK_URL=$(curl -s https://github.com | grep "browser_download_url.*\.apk" | head -n 1 | cut -d '"' -f 4)
-          curl -L "$APK_URL" -o /tmp/official_apk/official.apk
-          unzip -q /tmp/official_apk/official.apk "lib/arm64-v8a/*" -d /tmp/official_apk/
+          gh release download --repo khorne-hub/gu-native --pattern "*.apk" --dir /tmp/official_apk/
+          unzip -q /tmp/official_apk/*.apk "lib/arm64-v8a/*" -d /tmp/official_apk/
           cp /tmp/official_apk/lib/arm64-v8a/libSDL3.so deps/out/arm64-v8a/sdl3/lib/
           cp /tmp/official_apk/lib/arm64-v8a/libmhguffmpeg.so deps/out/arm64-v8a/ffmpeg/lib/
           cp /tmp/official_apk/lib/arm64-v8a/*.so android/app/src/main/jniLibs/arm64-v8a/
