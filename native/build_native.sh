@@ -8,12 +8,12 @@ API=28
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(dirname "$HERE")
 SRC="$ROOT"
-SDK=$(cygpath -u "$LOCALAPPDATA/Android/Sdk")
+SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
 NDK="$SDK/ndk/27.0.12077973"
-CMAKE="$SDK/cmake/3.22.1/bin/cmake.exe"
-NINJA="$SDK/cmake/3.22.1/bin/ninja.exe"
+CMAKE="$SDK/cmake/3.22.1/bin/cmake"
+NINJA="$SDK/cmake/3.22.1/bin/ninja"
 OUT="$HERE/build/$ABI"
-m() { cygpath -m "$1"; }
+m() { echo "$1"; }
 
 # las mismas ids que el Makefile: ambos lados de la interfaz runtime <-> código del juego deben coincidir
 GENFLAGS="android-$ABI -O2 -nossp -fno-strict-aliasing -ffp-contract=off -fno-math-errno"
@@ -40,14 +40,14 @@ mkdir -p "$J"
 mkdir -p "$ROOT/android/app/src/main/assets"
 printf %s "$GAMELIB_ID" > "$ROOT/android/app/src/main/assets/gamelib_id.txt"  # (GameFolderActivity: which game code fits)
 cp "$OUT/libmain.so" "$OUT/libmhguffmpeg.so" "$ROOT/deps/out/$ABI/sdl3/lib/libSDL3.so" "$J/"
-cp "$NDK/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/lib/$( [ $ABI = arm64-v8a ] && echo aarch64 || echo x86_64)-linux-android/libc++_shared.so" "$J/"
+cp "$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$( [ $ABI = arm64-v8a ] && echo aarch64 || echo x86_64)-linux-android/libc++_shared.so" "$J/"
 # (a driver of the player's own: runtime/platform/android_gpu.c; these are found in the app's nativeLibraryDir)
 [ "$ABI" = arm64-v8a ] && cp "$OUT"/adrenotools/src/hook/lib*_hook.so "$OUT/adrenotools/src/hook/libhook_impl.so" "$J/"
 [ -f "$OUT/libmhgugame.so" ] && cp "$OUT/libmhgugame.so" "$J/"
 # the on-phone builder: its two launchers (native/builder/toolrun.c) and its tools (tools/ and the runtime's headers the
 # game code is compiled with), checked to make game code with this same GAMELIB_ID
 if [ "$ABI" = arm64-v8a ]; then
-  for T in pyrun zigcc; do "$NDK/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-strip.exe" --strip-unneeded -o "$J/lib$T.so" "$OUT/lib$T.so"; done
+  for T in pyrun zigcc; do "$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-unneeded -o "$J/lib$T.so" "$OUT/lib$T.so" || exit 1; done
   python "$ROOT/tools/pack_builder_tools.py" "$GAMELIB_ID" || exit 1
 fi
 echo "native $ABI: ok (GAMELIB_ID $GAMELIB_ID)"
