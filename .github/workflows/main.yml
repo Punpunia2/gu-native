@@ -24,25 +24,17 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;27.0.12077973" "cmake;3.22.1"
 
-      - name: Setup Linux shims for Windows scripts
+      - name: Fetch prebuilt libs (SDL3 & FFmpeg) from official release
         run: |
-          printf '#!/bin/bash\nfor a in "$@"; do [[ "$a" != -* ]] && echo "$a"; done\n' | sudo tee /usr/local/bin/cygpath > /dev/null
-          sudo chmod +x /usr/local/bin/cygpath
-          ln -sf /usr/local/lib/android/sdk/cmake/3.22.1/bin/cmake /usr/local/lib/android/sdk/cmake/3.22.1/bin/cmake.exe
-          ln -sf /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja.exe
+          mkdir -p /tmp/official_apk deps/out/arm64-v8a/sdl3/lib deps/out/arm64-v8a/ffmpeg/lib android/app/src/main/jniLibs/arm64-v8a
+          APK_URL=$(curl -s https://github.com | grep "browser_download_url.*\.apk" | head -n 1 | cut -d '"' -f 4)
+          curl -L "$APK_URL" -o /tmp/official_apk/official.apk
+          unzip -q /tmp/official_apk/official.apk "lib/arm64-v8a/*" -d /tmp/official_apk/
+          cp /tmp/official_apk/lib/arm64-v8a/libSDL3.so deps/out/arm64-v8a/sdl3/lib/
+          cp /tmp/official_apk/lib/arm64-v8a/libmhguffmpeg.so deps/out/arm64-v8a/ffmpeg/lib/
+          cp /tmp/official_apk/lib/arm64-v8a/*.so android/app/src/main/jniLibs/arm64-v8a/
 
-      - name: Build Dependencies (SDL3, shaderc, FFmpeg)
-        env:
-          LOCALAPPDATA: /usr/local/lib/android
-          ANDROID_HOME: /usr/local/lib/android/sdk
-        run: |
-          sudo mkdir -p /usr/local/lib/android/Android
-          sudo ln -sfn /usr/local/lib/android/sdk /usr/local/lib/android/Android/Sdk
-          chmod +x deps/build_deps.sh deps/build_ffmpeg.sh
-          ./deps/build_deps.sh arm64-v8a
-          ./deps/build_ffmpeg.sh arm64-v8a
-
-      - name: Build Native Libraries (.so)
+      - name: Build Native Libraries (libmain.so with texture edit)
         run: |
           chmod +x native/build_native.sh
           ./native/build_native.sh arm64-v8a
