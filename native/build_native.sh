@@ -32,15 +32,15 @@ mkdir -p "$OUT"
   -DMHGU_SRC="$(m "$SRC")" -DDEPS="$(m "$ROOT/deps/out/$ABI")" -DGEN="$(m "$SRC/generated")" \
   -DGAMELIB_ID=$GAMELIB_ID -DSHADER_ID=$SHADER_ID -DMHGU_VERSION="$VERSION" -DMHGU_DEV=${MHGU_DEV:-OFF} > "$OUT.configure.log" 2>&1 \
   || { tail -30 "$OUT.configure.log"; exit 1; }
-"$CMAKE" --build "$(m "$OUT")" --parallel ${JOBS:-12} 2>&1 | grep -E "error|warning: implicit|FAILED|^ninja: build stopped" | head -60
-"$CMAKE" --build "$(m "$OUT")" --parallel ${JOBS:-12} > "$OUT.build.log" 2>&1 || { tail -40 "$OUT.build.log"; exit 1; }
+"$CMAKE" --build "$(m "$OUT")" --target main pyrun zigcc --parallel ${JOBS:-12} 2>&1 | grep -E "error|warning: implicit|FAILED|^ninja: build stopped" | head -60
+"$CMAKE" --build "$(m "$OUT")" --target main pyrun zigcc --parallel ${JOBS:-12} > "$OUT.build.log" 2>&1 || { tail -40 "$OUT.build.log"; exit 1; }
 
 # a jniLibs del proyecto Gradle
 J="$ROOT/android/app/src/main/jniLibs/$ABI"
 mkdir -p "$J"
 mkdir -p "$ROOT/android/app/src/main/assets"
 printf %s "$GAMELIB_ID" > "$ROOT/android/app/src/main/assets/gamelib_id.txt"  # (GameFolderActivity: which game code fits)
-cp "$OUT/libmain.so" "$OUT/libmhguffmpeg.so" "$ROOT/deps/out/$ABI/sdl3/lib/libSDL3.so" "$J/"
+cp "$OUT/libmain.so" "$ROOT/deps/out/$ABI/sdl3/lib/libSDL3.so" "$J/"
 cp "$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$( [ $ABI = arm64-v8a ] && echo aarch64 || echo x86_64)-linux-android/libc++_shared.so" "$J/"
 # (a driver of the player's own: runtime/platform/android_gpu.c; these are found in the app's nativeLibraryDir)
 [ "$ABI" = arm64-v8a ] && cp "$OUT"/adrenotools/src/hook/lib*_hook.so "$OUT/adrenotools/src/hook/libhook_impl.so" "$J/"
